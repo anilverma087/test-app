@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Shoes CRUD App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .shoe-list {
+            list-style: none;
+            padding: 0;
+        }
+        .shoe-list li {
+            background: #fafafa;
+            margin-bottom: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .shoe-list li button {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .shoe-list li button.update {
+            background: #3498db;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sports Shoes CRUD App</h1>
+        <form id="shoe-form">
+            <input type="hidden" id="shoe-id">
+            <input type="text" id="shoe-name" placeholder="Shoe Name" required>
+            <input type="text" id="shoe-brand" placeholder="Brand" required>
+            <input type="number" id="shoe-size" placeholder="Size" required>
+            <button type="button" onclick="createOrUpdateShoe()">Save</button>
+        </form>
+        <ul id="shoe-list" class="shoe-list"></ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const apiUrl = 'https://<your-api-url>/api/shoes'; // Replace with your actual API URL
+
+        document.addEventListener('DOMContentLoaded', loadShoes);
+
+        async function loadShoes() {
+            const response = await axios.get(apiUrl);
+            const shoes = response.data;
+            const shoeList = document.getElementById('shoe-list');
+            shoeList.innerHTML = '';
+            shoes.forEach(shoe => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${shoe.name} (Brand: ${shoe.brand}, Size: ${shoe.size})</span>
+                    <span>
+                        <button class="update" onclick="editShoe(${shoe.id})">Edit</button>
+                        <button onclick="deleteShoe(${shoe.id})">Delete</button>
+                    </span>
+                `;
+                shoeList.appendChild(li);
+            });
+        }
+
+        async function createOrUpdateShoe() {
+            const id = document.getElementById('shoe-id').value;
+            const name = document.getElementById('shoe-name').value;
+            const brand = document.getElementById('shoe-brand').value;
+            const size = document.getElementById('shoe-size').value;
+
+            if (id) {
+                await axios.put(`${apiUrl}/${id}`, { name, brand, size });
+            } else {
+                await axios.post(apiUrl, { name, brand, size });
+            }
+
+            document.getElementById('shoe-form').reset();
+            loadShoes();
+        }
+
+        async function editShoe(id) {
+            const response = await axios.get(`${apiUrl}/${id}`);
+            const shoe = response.data;
+            document.getElementById('shoe-id').value = shoe.id;
+            document.getElementById('shoe-name').value = shoe.name;
+            document.getElementById('shoe-brand').value = shoe.brand;
+            document.getElementById('shoe-size').value = shoe.size;
+        }
+
+        async function deleteShoe(id) {
+            await axios.delete(`${apiUrl}/${id}`);
+            loadShoes();
+        }
+    </script>
+</body>
+</html>
